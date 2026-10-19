@@ -30,6 +30,7 @@
 - ✅ 真实调用麦当劳 MCP 获取餐品营养数据（`list-nutrition-foods`）
 - ✅ 多模式约束求解引擎（贪心 + 局部搜索，自动去重与多样性控制）
 - ✅ 双形态交付：**WorkBuddy Skill** + **独立 CLI**，共用同一核心引擎
+- ✅ **v2 全链路**：营养套餐 → 门店 → 可下单商品映射 → 算价 → 下单
 - ✅ 离线快照兜底，无 MCP 环境也能演示
 - ✅ 输出完整营养标签（热量 / 蛋白 / 脂肪 / 碳水 / 钠 / 钙）
 
@@ -63,6 +64,12 @@ python cli/main.py --mode calorie --kcal 500 --json
 > python cli/main.py --mode calorie --kcal 500 --live
 > ```
 
+### 方式三：Web 界面（无需安装）
+
+直接用浏览器打开 `web/index.html`，即可在可视化界面中选择营养模式、调整热量预算，实时生成套餐建议（含营养素图表）。
+
+> 该页面为自包含单文件（内联营养数据 + Chart.js CDN），无需任何后端即可运行。
+
 ### 方式二：WorkBuddy Skill
 
 1. 将本仓库安装为 WorkBuddy 技能（参考 `skill/` 目录）；
@@ -77,12 +84,15 @@ mcd-nutrition-agent/
 ├── core/
 │   ├── nutrition.py            # 核心引擎：数据模型 + 多模式约束求解
 │   ├── mcp_client.py           # 麦当劳 MCP 客户端封装
+│   ├── order_flow.py           # v2 全链路：名称映射 + 下单编排
 │   ├── nutrition_snapshot.json # 离线营养快照（兜底）
 │   └── __init__.py
 ├── cli/
-│   └── main.py                 # 独立 CLI（壳 B）
+│   └── main.py                 # 独立 CLI（壳 B，含 --order 全链路）
+├── web/
+│   └── index.html              # Web 界面（单文件、自包含）
 ├── skill/                       # WorkBuddy Skill（壳 A）
-├── web/                         # 预留：Web 界面
+├── generate_web.py             # Web 界面生成脚本
 ├── README.md                    # 本文件
 ├── CONTEST_DECLARATION.md       # 参赛声明
 ├── MCP_INTEGRATION.md           # MCP 集成说明

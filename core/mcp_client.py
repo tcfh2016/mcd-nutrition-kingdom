@@ -55,6 +55,37 @@ class McDonaldsMCPClient:
         })
 
     # ------------------------------------------------------------------
+    # 下单链路（v2）
+    # ------------------------------------------------------------------
+    def query_meals(self, store_code: str, order_type: int, be_type: int,
+                    be_code: str = "", reservation_date: str = "") -> Any:
+        params = {
+            "storeCode": store_code,
+            "orderType": order_type,
+            "beType": be_type,
+        }
+        if be_code:
+            params["beCode"] = be_code
+        if reservation_date:
+            params["reservationDate"] = reservation_date
+        return self._call("mcp__mcd-mcp__query-meals", params)
+
+    def calculate_price(self, store_code: str, order_type: int, be_type: int,
+                        items: list, be_code: str = "",
+                        reservation_date: str = "") -> Any:
+        params = {
+            "storeCode": store_code,
+            "orderType": order_type,
+            "beType": be_type,
+            "items": items,
+        }
+        if be_code:
+            params["beCode"] = be_code
+        if reservation_date:
+            params["reservationDate"] = reservation_date
+        return self._call("mcp__mcd-mcp__calculate-price", params)
+
+    # ------------------------------------------------------------------
     # 积分 / 营销
     # ------------------------------------------------------------------
     def query_my_account(self) -> Any:

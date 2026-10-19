@@ -33,6 +33,20 @@ description: 麦当劳营养点餐 Agent。当用户提到麦当劳点餐、热�
 - **不要点重复餐品**：同名餐品、同基础饮品（冷热/大小不同）只保留一种。
 - **如实说明**：热量利用率、钠含量等如实呈现，不夸大"健康"效果。
 
+## v2 全链路（营养 → 门店 → 映射 → 算价 → 下单）
+
+当用户不仅要"营养建议"，还要"直接下单"时，走完整链路：
+
+1. **营养拼配**：`list-nutrition-foods` + 核心引擎 `plan_meal`，得到套餐
+2. **定位门店**：`query-nearby-stores`（到店自提 beType=1），拿到 storeCode
+3. **查门店菜单**：`query-meals`（orderType=1），拿到可下单商品 code + 价格
+4. **名称映射**：用 `core/order_flow.py` 的 `map_food_to_product`，把营养餐品名映射到 productCode（处理"纯牛奶（盒装）"vs"纯牛奶(盒装)"等差异）
+5. **算价**：`calculate-price`（orderType=1），拿到 takeWayList 和总价（单位"分"，展示除以 100）
+6. **下单**：`create-order`（需 takeWayCode；**下单前必须让用户明确确认**，避免误下单）
+7. **查订单**：`query-order`（下单后引导用户支付并查询状态）
+
+> 下单是**有副作用的真实操作**，务必在用户明确确认后才调用 `create-order`。
+
 ## 输出格式建议
 
 ```

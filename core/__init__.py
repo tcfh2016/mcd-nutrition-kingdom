@@ -13,6 +13,7 @@ from .nutrition import (
     infer_category,
 )
 from .mcp_client import McDonaldsMCPClient
+from .order_flow import OrderOrchestrator, map_food_to_product, normalize_name
 
 __all__ = [
     "FoodItem",
@@ -24,4 +25,7 @@ __all__ = [
     "load_snapshot",
     "infer_category",
     "McDonaldsMCPClient",
+    "OrderOrchestrator",
+    "map_food_to_product",
+    "normalize_name",
 ]

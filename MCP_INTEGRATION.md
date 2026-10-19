@@ -12,13 +12,19 @@
 | Tool | 用途 | 在本项目中的角色 |
 |------|------|------------------|
 | `list-nutrition-foods` | 获取常见餐品营养成分（能量/蛋白/脂肪/碳水/钠/钙） | **核心数据源**，为套餐拼配提供全部候选餐品 |
-| `query-nearby-stores` | 查询附近可点餐门店 | （v2 规划）串联门店，实现"营养套餐 → 就近下单" |
-| `query-my-account` | 查询积分账户 | （v2 规划）结合积分/优惠券优化下单成本 |
-| `query-lottery-info` | 查看积分抽奖活动 | （v2 规划）提示用户可用积分兑换福利 |
+| `query-nearby-stores` | 查询附近可点餐门店 | 全链路：定位门店，获取 storeCode |
+| `query-meals` | 查询门店可下单餐品列表（含 code + 价格） | 全链路：将营养餐品映射到可下单商品 |
+| `calculate-price` | 计算商品价格（含优惠，返回 takeWayList） | 全链路：算价并获取下单所需的 takeWayCode |
+| `create-order` | 创建订单 | 全链路：最终下单（需用户确认） |
+| `query-order` | 查询订单状态 | 全链路：下单后跟踪支付/配送状态 |
+| `query-my-account` | 查询积分账户 | （规划）结合积分/优惠券优化下单成本 |
+| `query-lottery-info` | 查看积分抽奖活动 | （规划）提示用户可用积分兑换福利 |
 
-> v1 版本已真实调用 `list-nutrition-foods` 完成核心功能；其余工具为架构预留，将在 v2 串联完整点餐链路。
+> v1 已真实调用 `list-nutrition-foods` 完成营养拼配；v2 已打通「营养 → 门店 → 餐品映射 → 算价 → 下单」全链路（下单为副作用操作，需用户确认）。
 
 ## 3. 调用流程
+
+### 3.1 营养拼配（v1 核心）
 
 ```
 用户输入（模式 + 热量预算）
@@ -41,7 +47,31 @@
    套餐建议（含完整营养标签）
 ```
 
-### 双运行环境适配
+### 3.2 全链路下单（v2）
+
+```
+营养套餐（3.1 输出）
+        │
+        ▼
+① query-nearby-stores ──► 定位门店 storeCode
+        │
+        ▼
+② query-meals ──► 门店可下单商品（code + 价格）
+        │
+        ▼
+③ map_food_to_product ──► 营养餐品名 → productCode（模糊匹配）
+        │
+        ▼
+④ calculate-price ──► 总价 + takeWayCode
+        │
+        ▼
+⑤ create-order ──► 下单（需用户确认，副作用操作）
+        │
+        ▼
+⑥ query-order ──► 跟踪订单状态
+```
+
+### 3.3 双运行环境适配
 
 `core/mcp_client.py` 中的 `McDonaldsMCPClient` 支持两种 MCP 调用方式，共用同一核心逻辑：
 

@@ -16,6 +16,9 @@
 
     # 输出 JSON
     python cli/main.py --mode calorie --kcal 500 --json
+
+    # v2 全链路：营养拼配 → 门店 → 映射可下单商品 → 算价（需 --live）
+    MCD_MCP_BASE_URL=... MCD_MCP_AUTH_TOKEN=... python cli/main.py --mode calorie --kcal 500 --live --order --city 杭州 --keyword 西湖
 """
 from __future__ import annotations
 
@@ -27,7 +30,7 @@ import sys
 # 允许直接运行 core 包（无需安装）
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import build_target, plan_meal, load_snapshot, McDonaldsMCPClient  # noqa: E402
+from core import build_target, plan_meal, load_snapshot, McDonaldsMCPClient, OrderOrchestrator  # noqa: E402
 
 MODE_HELP = {
     "calorie": "控卡减脂：控制总热量，压低脂肪供能占比",
@@ -57,6 +60,38 @@ def render_plan(plan) -> str:
     return "\n".join(lines)
 
 
+def render_order_flow(result: dict) -> str:
+    lines = []
+    lines.append("【全链路点餐流程】")
+    for step in result.get("steps", []):
+        lines.append(f"  ✓ {step}")
+    if result.get("error"):
+        lines.append(f"  ✗ 错误：{result['error']}")
+        return "\n".join(lines)
+
+    if result.get("store"):
+        s = result["store"]
+        lines.append(f"\n门店：{s['storeName']}（{s['storeCode']}，距 {s.get('distance','?')} 米）")
+
+    if result.get("plan"):
+        p = result["plan"]
+        lines.append(f"\n营养套餐（{p['label']}，预算 {p['target']['max_kcal']:.0f} 千卡）：")
+        for it in p["items"]:
+            lines.append(f"  - {it['product_name']}")
+
+    if result.get("mapped_items"):
+        lines.append("\n可下单商品映射：")
+        for it in result["mapped_items"]:
+            lines.append(f"  - {it['food_name']} → [{it['productCode']}] {it['meal_name']} ¥{it['price']}")
+
+    if result.get("unmapped"):
+        lines.append(f"\n未能映射的商品：{', '.join(result['unmapped'])}")
+
+    if result.get("price"):
+        lines.append(f"\n价格计算：{json.dumps(result['price'], ensure_ascii=False)}")
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="麦当劳营养点餐 Agent")
     parser.add_argument("--mode", choices=["calorie", "protein", "lowcarb"],
@@ -65,7 +100,24 @@ def main() -> int:
     parser.add_argument("--max-items", type=int, default=4, help="套餐最多餐品数")
     parser.add_argument("--live", action="store_true", help="实时调用麦当劳 MCP 获取餐品")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出")
+    parser.add_argument("--order", action="store_true", help="v2 全链路（营养→门店→映射→算价）")
+    parser.add_argument("--city", default="杭州", help="门店城市（--order 时使用）")
+    parser.add_argument("--keyword", default="", help="门店位置关键词（--order 时使用）")
     args = parser.parse_args()
+
+    # v2 全链路模式
+    if args.order:
+        if not args.live:
+            print("错误：全链路模式需要 --live（实时调用 MCP）", file=sys.stderr)
+            return 1
+        client = McDonaldsMCPClient()
+        orch = OrderOrchestrator(client)
+        result = orch.full_flow(args.mode, args.kcal, args.city, args.keyword)
+        if args.json:
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            print(render_order_flow(result))
+        return 0 if not result.get("error") else 1
 
     if args.live:
         client = McDonaldsMCPClient()
