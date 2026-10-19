@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mcd-mcp": {
+      "command": "npx",
+      "args": ["-y", "@mcd/mcp-server"],
+      "env": {
+        "MCD_MCP_BASE_URL": "${MCD_MCP_BASE_URL}",
+        "MCD_MCP_AUTH_TOKEN": "${MCD_MCP_AUTH_TOKEN}"
+      }
+    }
+  }
+}
