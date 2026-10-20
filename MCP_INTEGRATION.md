@@ -88,4 +88,4 @@
 
 - 本项目仅**读取**麦当劳 MCP 的公开查询类接口（营养、门店、积分查询），不涉及用户敏感数据的越权访问；
 - MCP 凭证通过环境变量注入，仓库中不含任何真实凭证（见 `mcp-config.example.json`）；
-- 离线营养快照（`core/nutrition_snapshot.json`）为 `list-nutrition-foods` 返回数据的静态摘录，仅用于无 MCP 环境的演示，不影响"真实使用 MCP"这一核心事实。
+- 离线营养快照（`core/nutrition_snapshot.json`）为 `list-nutrition-foods` 返回数据的全量静态快照（156 种餐品），仅用于无 MCP 环境的演示，不影响"真实使用 MCP"这一核心事实。

@@ -12,6 +12,8 @@ description: 麦当劳营养点餐 Agent。当用户提到麦当劳点餐、热�
    - `protein` 增肌高蛋白：保证蛋白质摄入
    - `lowcarb` 控糖低GI：限制碳水
    - 若用户未明确模式，根据描述推断；未提供热量预算则主动询问
+   - **识别忌口/过敏原**（不吃辣、不吃鱼、不吃牛肉、乳糖不耐、素食等），作为 `exclude` 过滤
+   - **全天规划**：用户说"一天/三餐"时，把预算当作全天总预算，用 `plan_daily` 拆早/午/晚
 
 2. **获取数据**：调用麦当劳 MCP 获取真实营养数据
    - 工具：`mcp__mcd-mcp__list-nutrition-foods`（通过 DeferExecuteTool 调用）
@@ -19,10 +21,13 @@ description: 麦当劳营养点餐 Agent。当用户提到麦当劳点餐、热�
 
 3. **拼配套餐**：调用核心引擎 `core/nutrition.py`
    ```python
-   from core import parse_foods_from_mcp, build_target, plan_meal
+   from core import parse_foods_from_mcp, build_target, plan_meal, plan_daily
    foods = parse_foods_from_mcp(raw_mcp_text)   # 解析 MCP 返回
    target = build_target(mode, kcal)            # 构建营养约束
-   plan = plan_meal(foods, target)              # 拼配套餐
+   # 单餐（exclude 传忌口列表，如 ["辣","鱼"]）
+   plan = plan_meal(foods, target, max_per_category=2, exclude=["辣"])
+   # 全天三餐（total_kcal 为全天总预算）
+   plans = plan_daily(foods, mode, total_kcal=1800, exclude=["辣"])
    ```
 
 4. **输出建议**：以表格形式呈现套餐，标注每项餐品的热量/蛋白/脂肪/碳水，并给出合计与营养标签（钠、钙）。

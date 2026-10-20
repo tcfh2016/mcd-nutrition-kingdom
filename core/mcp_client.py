@@ -86,13 +86,35 @@ class McDonaldsMCPClient:
         return self._call("mcp__mcd-mcp__calculate-price", params)
 
     # ------------------------------------------------------------------
-    # 积分 / 营销
+    # 积分 / 营销 / 优惠券
     # ------------------------------------------------------------------
     def query_my_account(self) -> Any:
         return self._call("mcp__mcd-mcp__query-my-account", {})
 
     def query_lottery_info(self) -> Any:
         return self._call("mcp__mcd-mcp__query-lottery-info", {})
+
+    def query_store_coupons(self, store_code: str, order_type: int, be_type: int,
+                            be_code: str = "", reservation_date: str = "") -> Any:
+        """查询指定门店 + 订单类型下可用的优惠券（结构化，含 couponId/couponCode/products）。"""
+        params = {"storeCode": store_code, "orderType": order_type, "beType": be_type}
+        if be_code:
+            params["beCode"] = be_code
+        if reservation_date:
+            params["reservationDate"] = reservation_date
+        return self._call("mcp__mcd-mcp__query-store-coupons", params)
+
+    def query_my_coupons(self, page: str = "1", page_size: str = "50") -> Any:
+        """查询用户卡包中的优惠券（展示用，不做下单规则校验）。"""
+        return self._call("mcp__mcd-mcp__query-my-coupons", {"page": page, "pageSize": page_size})
+
+    def available_coupons(self) -> Any:
+        """查询麦麦省当前可领取的优惠券。"""
+        return self._call("mcp__mcd-mcp__available-coupons", {})
+
+    def auto_bind_coupons(self) -> Any:
+        """一键领取所有可领的优惠券。"""
+        return self._call("mcp__mcd-mcp__auto-bind-coupons", {})
 
     # ------------------------------------------------------------------
     # 底层调用分发

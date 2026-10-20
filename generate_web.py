@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 import os
 
+from core.nutrition import infer_category
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SNAPSHOT = os.path.join(HERE, "core", "nutrition_snapshot.json")
 OUT = os.path.join(HERE, "web", "index.html")
@@ -16,7 +18,11 @@ OUT = os.path.join(HERE, "web", "index.html")
 
 def load_foods():
     with open(SNAPSHOT, "r", encoding="utf-8") as f:
-        return json.load(f)
+        foods = json.load(f)
+    # 前端做类别均衡需要 category 字段，这里补上
+    for f in foods:
+        f["category"] = infer_category(f["product_name"])
+    return foods
 
 
 def build_html(foods: list) -> str:
@@ -146,9 +152,9 @@ TEMPLATE = r"""<!DOCTYPE html>
     </div>
   </div>
 
-  <div class="card foot">
-    数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 返回的真实营养数据（离线快照演示版）。
-    本页面为前端演示，完整实时调用见 CLI 的 <code>--live</code> 模式或 WorkBuddy Skill。
+  <div class="card foot" id="sourceHint">
+    数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 返回的真实营养数据（离线快照兜底）。
+    启动 <code>web/server.py</code> 后端后，本页面将自动切换为实时 MCP 数据。
   </div>
 </div>
 
@@ -166,11 +172,18 @@ let macroChart = null, kcalChart = null;
 
 const el = id => document.getElementById(id);
 
+const DRINK_BASE_ORDER = [
+  ["鲜萃咖啡", "鲜萃咖啡"], ["焦糖玛奇朵", "玛奇朵"], ["燕麦奶铁", "燕麦奶铁"],
+  ["燕麦奶", "燕麦奶"], ["伯爵红茶", "红茶"], ["阿芙佳朵", "阿芙佳朵"],
+  ["卡布奇诺", "卡布奇诺"], ["玛奇朵", "玛奇朵"], ["美式", "美式咖啡"],
+  ["拿铁", "拿铁"], ["奶铁", "奶铁"], ["可乐", "可乐"], ["雪碧", "雪碧"],
+  ["红茶", "红茶"], ["黑巧", "黑巧"], ["抹茶", "抹茶"], ["牛奶", "牛奶"],
+  ["豆浆", "豆浆"], ["苹果汁", "苹果汁"], ["怡泉", "怡泉"], ["朱古力", "朱古力"], ["雪冰", "雪冰"]
+];
+
 function drinkBase(name) {
-  const map = { "美式": "美式咖啡", "拿铁": "拿铁", "奶铁": "奶铁", "玛奇朵": "玛奇朵",
-                "卡布奇诺": "卡布奇诺", "可乐": "可乐", "雪碧": "雪碧", "红茶": "红茶",
-                "黑巧": "黑巧", "抹茶": "抹茶" };
-  for (const k in map) if (name.includes(k)) return map[k];
+  if (name.includes("盒装")) return "";
+  for (const [k, v] of DRINK_BASE_ORDER) if (name.includes(k)) return v;
   return "";
 }
 
@@ -185,14 +198,16 @@ function score(f, target) {
   return (f.protein / Math.max(f.energy_kcal, 1)) - (f.fat / Math.max(f.energy_kcal, 1) * 0.5);
 }
 
-function plan(foods, target, maxItems = 4) {
+function plan(foods, target, maxItems = 4, maxPerCategory = 2) {
   const pool = [...foods].sort((a, b) => score(b, target) - score(a, target));
-  const acc = { kcal: 0, protein: 0, fat: 0, carb: 0, sodium: 0, calcium: 0, names: new Set(), drinks: new Set() };
+  const acc = { kcal: 0, protein: 0, fat: 0, carb: 0, sodium: 0, calcium: 0, names: new Set(), drinks: new Set(), catCount: {} };
   const chosen = [];
 
   function fits(f) {
     if (chosen.length >= maxItems) return false;
     if (acc.names.has(f.product_name)) return false;
+    const cat = f.category || "unknown";
+    if ((acc.catCount[cat] || 0) >= maxPerCategory) return false;
     const b = drinkBase(f.product_name);
     if (b && acc.drinks.has(b)) return false;
     if (acc.kcal + f.energy_kcal > target.maxKcal + 1e-6) return false;
@@ -204,6 +219,8 @@ function plan(foods, target, maxItems = 4) {
     acc.kcal += f.energy_kcal; acc.protein += f.protein; acc.fat += f.fat;
     acc.carb += f.carbohydrate; acc.sodium += f.sodium; acc.calcium += f.calcium;
     acc.names.add(f.product_name);
+    const cat = f.category || "unknown";
+    acc.catCount[cat] = (acc.catCount[cat] || 0) + 1;
     const b = drinkBase(f.product_name); if (b) acc.drinks.add(b);
     chosen.push(f);
   }
@@ -307,7 +324,42 @@ function generate() {
 }
 
 el("modeHint").textContent = MODE_HINT[currentMode];
+
+function updateSourceHint() {
+  const hint = el("sourceHint");
+  if (!hint) return;
+  const src = window.__foodSource;
+  if (src === "麦当劳 MCP 实时数据") {
+    hint.innerHTML = '数据来源：<strong style="color:#639922;">麦当劳 MCP 实时数据</strong>（通过 web/server.py 后端）';
+  } else if (src === "离线快照") {
+    hint.innerHTML = '数据来源：<strong>离线快照</strong>（未检测到后端，运行 <code>python web/server.py</code> 可切换实时 MCP）';
+  } else {
+    hint.innerHTML = '数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 返回的真实营养数据（离线快照兜底）。启动 <code>web/server.py</code> 后端后自动切换实时 MCP。';
+  }
+}
+
+async function loadRemoteFoods() {
+  try {
+    const resp = await fetch("/api/foods", { cache: "no-store" });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (data.foods && data.foods.length > 0) {
+      FOODS.length = 0;
+      FOODS.push(...data.foods);
+      window.__foodSource = data.source === "mcp" ? "麦当劳 MCP 实时数据" : "离线快照";
+      updateSourceHint();
+      generate();
+    }
+  } catch (e) {
+    // 后端不可用，保持内联快照
+    window.__foodSource = "离线快照";
+    updateSourceHint();
+  }
+}
+
+updateSourceHint();
 generate();
+loadRemoteFoods();
 </script>
 </body>
 </html>

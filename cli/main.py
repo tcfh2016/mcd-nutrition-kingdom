@@ -30,7 +30,7 @@ import sys
 # 允许直接运行 core 包（无需安装）
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import build_target, plan_meal, load_snapshot, McDonaldsMCPClient, OrderOrchestrator  # noqa: E402
+from core import build_target, plan_meal, plan_daily, load_snapshot, McDonaldsMCPClient, OrderOrchestrator  # noqa: E402
 
 MODE_HELP = {
     "calorie": "控卡减脂：控制总热量，压低脂肪供能占比",
@@ -57,6 +57,28 @@ def render_plan(plan) -> str:
     )
     lines.append(f"\n钠含量：{t['sodium']:.0f} mg   钙含量：{t['calcium']:.0f} mg")
     lines.append(f"热量利用率：{t['kcal'] / plan.target.max_kcal * 100:.0f}%")
+    return "\n".join(lines)
+
+
+def render_daily(plans: dict) -> str:
+    lines = []
+    lines.append("【全天多餐规划】")
+    lines.append("-" * 46)
+    total_kcal = 0.0
+    total_protein = 0.0
+    for name, plan in plans.items():
+        if plan is None:
+            lines.append(f"\n{name}：无法拼出满足约束的套餐")
+            continue
+        lines.append(f"\n{name}（预算 {plan.target.max_kcal:.0f} 千卡）：")
+        for item in plan.items:
+            lines.append(f"  - {item.product_name}（{item.energy_kcal:.0f} 千卡）")
+        t = plan.to_dict()["totals"]
+        lines.append(f"  小计：{t['kcal']:.0f} 千卡 · 蛋白 {t['protein']:.0f}g · 脂肪 {t['fat']:.0f}g · 碳水 {t['carbohydrate']:.0f}g")
+        total_kcal += t["kcal"]
+        total_protein += t["protein"]
+    lines.append("-" * 46)
+    lines.append(f"全天合计：{total_kcal:.0f} 千卡 · 蛋白 {total_protein:.0f}g")
     return "\n".join(lines)
 
 
@@ -87,6 +109,14 @@ def render_order_flow(result: dict) -> str:
     if result.get("unmapped"):
         lines.append(f"\n未能映射的商品：{', '.join(result['unmapped'])}")
 
+    if result.get("coupons"):
+        lines.append("\n可用优惠券（已匹配）：")
+        for c in result["coupons"]:
+            products = "、".join(p.get("productName", "") for p in c["matched_products"])
+            lines.append(f"  - {c['title']}（适用：{products}）")
+    elif "coupons" in result:
+        lines.append("\n可用优惠券：无匹配")
+
     if result.get("price"):
         lines.append(f"\n价格计算：{json.dumps(result['price'], ensure_ascii=False)}")
     return "\n".join(lines)
@@ -98,6 +128,12 @@ def main() -> int:
                         default="calorie", help="营养模式")
     parser.add_argument("--kcal", type=float, required=True, help="热量预算（千卡）")
     parser.add_argument("--max-items", type=int, default=4, help="套餐最多餐品数")
+    parser.add_argument("--max-per-category", type=int, default=2,
+                        help="每类餐品数量上限，保证套餐结构均衡（0 表示不限制）")
+    parser.add_argument("--exclude", default="",
+                        help="忌口/过敏原，逗号分隔（如：辣,鱼,牛肉,乳糖）")
+    parser.add_argument("--daily", action="store_true",
+                        help="全天多餐规划（把 --kcal 当作全天总预算，按早/午/晚拆配）")
     parser.add_argument("--live", action="store_true", help="实时调用麦当劳 MCP 获取餐品")
     parser.add_argument("--json", action="store_true", help="以 JSON 输出")
     parser.add_argument("--order", action="store_true", help="v2 全链路（营养→门店→映射→算价）")
@@ -130,17 +166,34 @@ def main() -> int:
         foods = load_snapshot()
         source = "离线快照（未配置 MCP）"
 
+    exclude = [s.strip() for s in args.exclude.split(",") if s.strip()]
+    max_per_category = args.max_per_category if args.max_per_category > 0 else None
+
+    # 全天多餐规划
+    if args.daily:
+        plans = plan_daily(foods, args.mode, args.kcal, exclude=exclude,
+                           max_items=args.max_items, max_per_category=max_per_category)
+        if args.json:
+            out = {name: (p.to_dict() if p else None) for name, p in plans.items()}
+            print(json.dumps(out, ensure_ascii=False, indent=2))
+        else:
+            print(f"数据来源：{source}\n")
+            print(render_daily(plans))
+        return 0
+
     target = build_target(args.mode, args.kcal)
-    plan = plan_meal(foods, target, max_items=args.max_items)
+    plan = plan_meal(foods, target, max_items=args.max_items,
+                     max_per_category=max_per_category, exclude=exclude)
 
     if plan is None:
         print(f"无法在预算 {args.kcal:.0f} 千卡内拼出满足约束的套餐，请放宽预算或减少约束。", file=sys.stderr)
         return 1
 
-    print(f"数据来源：{source}\n")
     if args.json:
+        # 纯 JSON 输出，便于机器解析（不含额外文本行）
         print(json.dumps(plan.to_dict(), ensure_ascii=False, indent=2))
     else:
+        print(f"数据来源：{source}\n")
         print(render_plan(plan))
     return 0
 

@@ -81,6 +81,55 @@ def map_food_to_product(food_name: str, meals_map: dict) -> Optional[str]:
     return best_code if best_score >= 60 else None
 
 
+def match_coupons(store_coupons: list, mapped_items: list) -> list:
+    """把门店可用券匹配到套餐商品。
+
+    券的 products[].productCode 是「商品主数据编码」，与 query-meals 返回的
+    门店 SKU code 可能不是同一套，因此同时做两类匹配：
+    1. code 精确匹配；2. 名称模糊匹配（券 productName ↔ 套餐 meal_name）。
+
+    Args:
+        store_coupons: query-store-coupons 返回的 data 数组
+        mapped_items: 套餐映射结果（含 productCode 与 meal_name）
+
+    Returns:
+        匹配到的券列表，每项含 couponId/couponCode/title/matched_meal_codes
+    """
+    matched = []
+    for c in store_coupons or []:
+        hits_products = []
+        matched_codes = []
+        for p in c.get("products", []):
+            p_code = p.get("productCode")
+            p_name = p.get("productName", "")
+            p_key = _clean_for_key(p_name)
+            for it in mapped_items:
+                code = it.get("productCode")
+                meal_name = it.get("meal_name", "")
+                meal_key = _clean_for_key(meal_name)
+                hit = False
+                if p_code and p_code == code:
+                    hit = True
+                elif p_key and len(p_key) >= 2 and (
+                        p_key == meal_key or p_key in meal_key or meal_key in p_key):
+                    hit = True
+                if hit:
+                    hits_products.append(p)
+                    matched_codes.append(code)
+                    break
+        if hits_products:
+            matched.append({
+                "title": c.get("title"),
+                "couponId": c.get("couponId"),
+                "couponCode": c.get("couponCode"),
+                "promotionId": c.get("promotionId"),
+                "tradeDateTime": c.get("tradeDateTime"),
+                "matched_products": hits_products,
+                "matched_meal_codes": matched_codes,
+            })
+    return matched
+
+
 class OrderOrchestrator:
     """全链路下单编排器。
 
@@ -102,7 +151,7 @@ class OrderOrchestrator:
         foods = self.client.list_nutrition_foods()
         from .nutrition import build_target, plan_meal
         target = build_target(mode, kcal)
-        plan = plan_meal(foods, target)
+        plan = plan_meal(foods, target, max_per_category=2)
         if plan is None:
             result["error"] = "无法拼出满足约束的套餐"
             return result
@@ -148,15 +197,36 @@ class OrderOrchestrator:
         result["unmapped"] = unmapped
         result["steps"].append(f"映射可下单商品 {len(mapped_items)}/{len(plan.items)} 项")
 
-        # 5. 算价（如有映射结果）
+        # 5. 省钱优化：查门店可用券，匹配套餐商品
+        store_coupons = self.client.query_store_coupons(store_code, order_type=1, be_type=be_type)
+        coupon_list = store_coupons.get("data", []) if isinstance(store_coupons, dict) else []
+        matched_coupons = match_coupons(coupon_list, mapped_items)
+        # 建立 门店SKU code -> 券 的映射，便于算价时叠加
+        coupon_by_code = {}
+        for mc in matched_coupons:
+            for code in mc["matched_meal_codes"]:
+                coupon_by_code[code] = {
+                    "couponId": mc["couponId"],
+                    "couponCode": mc["couponCode"],
+                }
+        result["coupons"] = matched_coupons
+        result["steps"].append(f"匹配可用券 {len(matched_coupons)} 张")
+
+        # 6. 算价（叠加匹配到的优惠券）
         if mapped_items:
+            items = []
+            for i in mapped_items:
+                item = {"productCode": i["productCode"], "quantity": 1}
+                c = coupon_by_code.get(i["productCode"])
+                if c:
+                    item["couponId"] = c["couponId"]
+                    item["couponCode"] = c["couponCode"]
+                items.append(item)
             price_result = self.client.calculate_price(
-                store_code, order_type=1, be_type=be_type,
-                items=[{"productCode": i["productCode"], "quantity": 1}
-                       for i in mapped_items],
+                store_code, order_type=1, be_type=be_type, items=items,
             )
             result["price"] = self._extract_price(price_result)
-            result["steps"].append("算价完成")
+            result["steps"].append("算价完成（含优惠券）")
 
         return result
 

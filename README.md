@@ -28,7 +28,9 @@
 ## 特性
 
 - ✅ 真实调用麦当劳 MCP 获取餐品营养数据（`list-nutrition-foods`）
-- ✅ 多模式约束求解引擎（贪心 + 局部搜索，自动去重与多样性控制）
+- ✅ 多模式约束求解引擎（贪心 + 局部搜索，自动去重与类别多样性控制，每类餐品 ≤ 2）
+- ✅ 忌口 / 过敏原过滤（不吃辣、鱼、牛肉、乳糖等，基于餐品名启发式匹配）
+- ✅ 全天多餐规划（早 / 午 / 晚三餐按比例拆配，跨餐不重复）
 - ✅ 双形态交付：**WorkBuddy Skill** + **独立 CLI**，共用同一核心引擎
 - ✅ **v2 全链路**：营养套餐 → 门店 → 可下单商品映射 → 算价 → 下单
 - ✅ 离线快照兜底，无 MCP 环境也能演示
@@ -52,6 +54,12 @@ python cli/main.py --mode protein --kcal 700
 # 控糖低GI，预算 450 千卡
 python cli/main.py --mode lowcarb --kcal 450
 
+# 忌口过滤：不吃辣、不吃鱼
+python cli/main.py --mode calorie --kcal 500 --exclude "辣,鱼"
+
+# 全天三餐规划：总预算 1800 千卡
+python cli/main.py --mode calorie --kcal 1800 --daily
+
 # 输出 JSON
 python cli/main.py --mode calorie --kcal 500 --json
 ```
@@ -64,11 +72,19 @@ python cli/main.py --mode calorie --kcal 500 --json
 > python cli/main.py --mode calorie --kcal 500 --live
 > ```
 
-### 方式三：Web 界面（无需安装）
+### 方式三：Web 界面
 
-直接用浏览器打开 `web/index.html`，即可在可视化界面中选择营养模式、调整热量预算，实时生成套餐建议（含营养素图表）。
+**离线模式（零依赖）**：直接用浏览器打开 `web/index.html`，即可在可视化界面中选择营养模式、调整热量预算，实时生成套餐建议（含营养素图表）。该页面为自包含单文件（内联营养数据 + Chart.js CDN），无需后端即可运行。
 
-> 该页面为自包含单文件（内联营养数据 + Chart.js CDN），无需任何后端即可运行。
+**实时 MCP 模式**：启动后端后，页面会自动切换为麦当劳 MCP 实时数据：
+
+```bash
+# 可选：配置 MCP 凭证（不配则后端用离线快照兜底）
+export MCD_MCP_BASE_URL="https://your-mcp-endpoint"
+export MCD_MCP_AUTH_TOKEN="your-token"
+python web/server.py
+# 浏览器访问 http://127.0.0.1:8765/
+```
 
 ### 方式二：WorkBuddy Skill
 
@@ -90,7 +106,11 @@ mcd-nutrition-agent/
 ├── cli/
 │   └── main.py                 # 独立 CLI（壳 B，含 --order 全链路）
 ├── web/
-│   └── index.html              # Web 界面（单文件、自包含）
+│   ├── index.html              # Web 界面（单文件、自包含，可离线打开）
+│   └── server.py               # Web 后端（实时 MCP 优先，离线快照兜底）
+├── scripts/
+│   └── refresh_snapshot.py     # 从 MCP 返回数据重新生成营养快照
+├── tests/                       # 单元测试（unittest，零依赖）
 ├── skill/                       # WorkBuddy Skill（壳 A）
 ├── generate_web.py             # Web 界面生成脚本
 ├── README.md                    # 本文件

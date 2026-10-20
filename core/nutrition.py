@@ -132,13 +132,18 @@ def build_target(mode: str, kcal: float, extra: Optional[dict] = None) -> Nutrit
 
 
 def _fits(item: FoodItem, target: NutritionTarget,
-          acc: dict, max_items: int, cur_count: int) -> bool:
+          acc: dict, max_items: int, cur_count: int,
+          max_per_category: Optional[int] = None) -> bool:
     """判断把 item 加入当前累计后是否仍满足约束。"""
     if cur_count >= max_items:
         return False
     # 避免重复餐品（同名去重）
     if item.product_name in acc.get("_names", set()):
         return False
+    # 类别均衡：限制同一类别餐品数量，避免套餐过度集中于某一类
+    if max_per_category is not None:
+        if acc.get("_cat_count", {}).get(item.category, 0) >= max_per_category:
+            return False
     # 饮品去重：避免同一基础饮品点两个冷热款（如热美式+冰美式）
     base = _drink_base(item.product_name)
     if base and base in acc.get("_drinks", set()):
@@ -164,6 +169,7 @@ def _add(item: FoodItem, acc: dict) -> None:
     acc["calcium"] += item.calcium
     acc.setdefault("_names", set()).add(item.product_name)
     acc.setdefault("_cats", set()).add(item.category)
+    acc.setdefault("_cat_count", {})[item.category] = acc["_cat_count"].get(item.category, 0) + 1
     base = _drink_base(item.product_name)
     if base:
         acc.setdefault("_drinks", set()).add(base)
@@ -171,7 +177,8 @@ def _add(item: FoodItem, acc: dict) -> None:
 
 def _new_acc() -> dict:
     return {"kcal": 0.0, "protein": 0.0, "fat": 0.0, "carb": 0.0,
-            "sodium": 0.0, "calcium": 0.0, "_names": set(), "_cats": set(), "_drinks": set()}
+            "sodium": 0.0, "calcium": 0.0, "_names": set(), "_cats": set(),
+            "_cat_count": {}, "_drinks": set()}
 
 
 def plan_meal(
@@ -179,6 +186,8 @@ def plan_meal(
     target: NutritionTarget,
     max_items: int = 4,
     categories: Optional[set[str]] = None,
+    max_per_category: Optional[int] = None,
+    exclude: Optional[list[str]] = None,
 ) -> Optional[MealPlan]:
     """在给定餐品集合上拼配一份满足约束的套餐。
 
@@ -190,7 +199,11 @@ def plan_meal(
         target: 营养目标
         max_items: 套餐最多包含的餐品数量
         categories: 可选，限制候选餐品类别（如 {"burger","side","drink"}）
+        max_per_category: 可选，每类餐品数量上限（如 2，保证套餐结构均衡）
+        exclude: 可选，忌口/过敏原名列表（如 ["辣", "鱼", "牛肉"]），过滤匹配餐品
     """
+    if exclude:
+        foods = filter_foods(foods, exclude)
     pool = [f for f in foods if categories is None or f.category in categories]
 
     # 打分：蛋白质密度（增肌）或低热量密度（控卡/控糖）优先
@@ -210,7 +223,7 @@ def plan_meal(
     acc = _new_acc()
     chosen: list[FoodItem] = []
     for item in pool:
-        if _fits(item, target, acc, max_items, len(chosen)):
+        if _fits(item, target, acc, max_items, len(chosen), max_per_category):
             _add(item, acc)
             chosen.append(item)
         # 控卡/控糖：达到预算的 90% 或已加满即停，避免过度贪心
@@ -224,7 +237,7 @@ def plan_meal(
         for item in remaining:
             if len(chosen) >= max_items:
                 break
-            if _fits(item, target, acc, max_items, len(chosen)):
+            if _fits(item, target, acc, max_items, len(chosen), max_per_category):
                 _add(item, acc)
                 chosen.append(item)
                 if acc["kcal"] >= target.max_kcal * 0.9:
@@ -245,17 +258,24 @@ def plan_meal(
                 trial_acc["_names"] = set(acc["_names"])
                 trial_acc["_cats"] = set(acc["_cats"])
                 trial_acc["_drinks"] = set(acc.get("_drinks", set()))
+                trial_acc["_cat_count"] = dict(acc.get("_cat_count", {}))
                 trial_acc["_names"].discard(kept.product_name)
                 base = _drink_base(kept.product_name)
                 if base:
                     trial_acc["_drinks"].discard(base)
+                # 移除 kept 的类别计数
+                _cat = kept.category
+                if trial_acc["_cat_count"].get(_cat, 0) <= 1:
+                    trial_acc["_cat_count"].pop(_cat, None)
+                else:
+                    trial_acc["_cat_count"][_cat] -= 1
                 trial_acc["kcal"] -= kept.energy_kcal
                 trial_acc["protein"] -= kept.protein
                 trial_acc["fat"] -= kept.fat
                 trial_acc["carb"] -= kept.carbohydrate
                 trial_acc["sodium"] -= kept.sodium
                 trial_acc["calcium"] -= kept.calcium
-                if not _fits(cand, target, trial_acc, max_items, len(chosen) - 1):
+                if not _fits(cand, target, trial_acc, max_items, len(chosen) - 1, max_per_category):
                     continue
                 if target.mode == "protein":
                     better = cand.protein > kept.protein
@@ -296,27 +316,49 @@ def _make_plan(target: NutritionTarget, items: list[FoodItem], acc: dict) -> Mea
 # 餐品分类推断（基于名称，用于可选类别过滤）
 # ============================================================================
 
-_BURGER_KEYS = ("堡", "满分", "卷", "鸡排", "鸡球", "鱼", "鸡翅", "鸡腿", "里脊", "香肠", "叠叠")
-_SIDE_KEYS = ("薯条", "玉米杯", "脆薯饼", "油条", "派", "冰淇淋", "新地", "麦旋风", "拉明顿", "苹果片", "麦乐鸡")
-_DRINK_KEYS = ("可乐", "雪碧", "咖啡", "茶", "奶", "豆浆", "果汁", "朱古力", "雪冰", "美式", "玛奇朵", "卡布奇诺", "怡泉", "纯悦", "浓缩", "燕麦", "黑巧")
+_BURGER_KEYS = ("堡", "满分", "卷", "鸡排", "鸡球", "鱼", "鸡翅", "鸡腿", "里脊", "香肠", "叠叠",
+                "脆汁鸡", "V翅", "双翅", "鸡块", "牛堡", "安格斯", "香鸡", "巨无霸",
+                # 限定套餐名（程序员节谐音款）归主菜类
+                "蜜汁", "多肉", "满满", "支撑")
+_SIDE_KEYS = ("薯条", "玉米杯", "脆薯饼", "油条", "派", "冰淇淋", "新地", "麦旋风", "拉明顿", "苹果片",
+              "麦乐鸡", "粥")
+_DRINK_KEYS = ("可乐", "雪碧", "咖啡", "茶", "奶", "豆浆", "果汁", "朱古力", "雪冰", "美式", "玛奇朵",
+               "卡布奇诺", "怡泉", "纯悦", "浓缩", "燕麦", "黑巧", "鲜萃", "阿芙佳朵",
+               "阳光橙", "爆珠", "美汁源", "橙橙")
 
-# 用于饮品去重的基础名（去掉冷热/大小前缀后的核心名）
-_DRINK_BASE_MAP = {
-    "美式": "美式咖啡",
-    "拿铁": "拿铁",
-    "奶铁": "奶铁",
-    "玛奇朵": "玛奇朵",
-    "卡布奇诺": "卡布奇诺",
-    "可乐": "可乐",
-    "雪碧": "雪碧",
-    "红茶": "红茶",
-    "黑巧": "黑巧",
-    "抹茶": "抹茶",
-}
+# 用于饮品去重的基础名（去掉冷热/大小前缀后的核心名）。
+# 顺序有意义：更具体的词排前面，避免"燕麦奶铁"被"奶铁"截获。
+_DRINK_BASE_ORDER = [
+    ("鲜萃咖啡", "鲜萃咖啡"),
+    ("焦糖玛奇朵", "玛奇朵"),
+    ("燕麦奶铁", "燕麦奶铁"),
+    ("燕麦奶", "燕麦奶"),
+    ("伯爵红茶", "红茶"),
+    ("阿芙佳朵", "阿芙佳朵"),
+    ("卡布奇诺", "卡布奇诺"),
+    ("玛奇朵", "玛奇朵"),
+    ("美式", "美式咖啡"),
+    ("拿铁", "拿铁"),
+    ("奶铁", "奶铁"),
+    ("可乐", "可乐"),
+    ("雪碧", "雪碧"),
+    ("红茶", "红茶"),
+    ("黑巧", "黑巧"),
+    ("抹茶", "抹茶"),
+    ("牛奶", "牛奶"),
+    ("豆浆", "豆浆"),
+    ("苹果汁", "苹果汁"),
+    ("怡泉", "怡泉"),
+    ("朱古力", "朱古力"),
+    ("雪冰", "雪冰"),
+]
 
 
 def _drink_base(name: str) -> str:
-    for k, v in _DRINK_BASE_MAP.items():
+    # 盒装包装饮品（如纯牛奶（盒装））与现制饮品视为不同商品，不参与冷热/规格去重
+    if "盒装" in name:
+        return ""
+    for k, v in _DRINK_BASE_ORDER:
         if k in name:
             return v
     return ""
@@ -330,6 +372,74 @@ def infer_category(name: str) -> str:
     if any(k in name for k in _SIDE_KEYS):
         return "side"
     return "unknown"
+
+
+# ============================================================================
+# 忌口 / 过敏原过滤
+# ============================================================================
+
+# 忌口/过敏原名 → 餐品名关键词（含任一关键词即排除）。
+# MCP 营养数据不含过敏原字段，故基于餐品名做启发式匹配。
+ALLERGEN_KEYWORDS = {
+    "辣": ["辣"],
+    "鱼": ["鱼", "鳕鱼"],
+    "牛肉": ["牛堡", "安格斯"],
+    "猪肉": ["猪", "培根", "火腿", "烟肉", "香肠"],
+    "鸡肉": ["鸡"],
+    "蛋": ["蛋"],
+    "乳糖": ["奶", "牛奶", "奶铁", "朱古力", "新地", "麦旋风", "冰淇淋", "雪冰", "拉明顿"],
+    "海鲜": ["鱼", "鳕鱼", "虾"],
+    "麸质": ["堡", "满分", "卷", "油条"],
+}
+
+
+def filter_foods(foods: Iterable[FoodItem], restrictions: list[str]) -> list[FoodItem]:
+    """按忌口/过敏原名列表过滤餐品。
+
+    Args:
+        foods: 候选餐品
+        restrictions: 忌口名列表（如 ["辣", "鱼", "牛肉"]）；未识别的名字按字面作关键词
+    """
+    if not restrictions:
+        return list(foods)
+    words: set[str] = set()
+    for r in restrictions:
+        words.update(ALLERGEN_KEYWORDS.get(r, [r]))
+    return [f for f in foods if not any(w in f.product_name for w in words)]
+
+
+# ============================================================================
+# 全天多餐规划
+# ============================================================================
+
+
+def plan_daily(
+    foods: Iterable[FoodItem],
+    mode: str,
+    total_kcal: float,
+    exclude: Optional[list[str]] = None,
+    meal_names: tuple[str, ...] = ("早餐", "午餐", "晚餐"),
+    ratios: tuple[float, ...] = (0.3, 0.4, 0.3),
+    max_items: int = 4,
+    max_per_category: Optional[int] = 2,
+) -> dict:
+    """全天多餐规划：按比例拆分总预算，逐餐拼配（跨餐不重复同一餐品）。
+
+    Returns:
+        {餐名: MealPlan}，某餐无法拼出时为 None
+    """
+    plans: dict = {}
+    used: set[str] = set()
+    for name, ratio in zip(meal_names, ratios):
+        target = build_target(mode, total_kcal * ratio)
+        candidates = [f for f in foods if f.product_name not in used]
+        plan = plan_meal(candidates, target, max_items=max_items,
+                         max_per_category=max_per_category, exclude=exclude)
+        plans[name] = plan
+        if plan:
+            for it in plan.items:
+                used.add(it.product_name)
+    return plans
 
 
 # ============================================================================
