@@ -62,7 +62,9 @@
   .metric .label { font-size: 12px; color: var(--muted); }
   .metric .num { font-size: 24px; font-weight: 700; margin-top: 2px; }
   .metric .unit { font-size: 12px; color: var(--muted); font-weight: 400; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px; }
+  td:first-child { word-break: break-word; }
   th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
   th { color: var(--muted); font-weight: 500; font-size: 13px; }
   tr.total td { font-weight: 700; border-top: 2px solid var(--border); }
@@ -79,7 +81,7 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>麦当劳营养点餐 Agent<span class="badge">McD MCP</span></h1>
+    <h1>麦当劳营养点餐 Agent<span class="badge">McDonald's MCP</span></h1>
     <div class="sub">说出你的热量/营养目标，自动拼出一份「吃得饱、营养对」的麦当劳套餐。基于麦当劳 MCP 真实营养数据。</div>
   </header>
 
@@ -103,7 +105,7 @@
 
   <div class="card" id="resultCard" style="display:none;">
     <h2 style="font-size:16px; font-weight:700; margin:0 0 12px;" id="resultTitle"></h2>
-    <table id="resultTable"></table>
+    <div class="table-wrap"><table id="resultTable"></table></div>
     <div class="chart-row">
       <div>
         <div class="legend">
@@ -121,8 +123,8 @@
   </div>
 
   <div class="card foot" id="sourceHint">
-    数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 返回的真实营养数据（离线快照兜底）。
-    启动 <code>web/server.py</code> 后端后，本页面将自动切换为实时 MCP 数据。
+    数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 真实营养数据（内联快照）。
+    启动 <code>web/server.py</code> 后端后，本页面通过 <code>/api/foods</code> 自动加载数据。
   </div>
 </div>
 
@@ -298,11 +300,13 @@ function updateSourceHint() {
   if (!hint) return;
   const src = window.__foodSource;
   if (src === "麦当劳 MCP 实时数据") {
-    hint.innerHTML = '数据来源：<strong style="color:#639922;">麦当劳 MCP 实时数据</strong>（通过 web/server.py 后端）';
-  } else if (src === "离线快照") {
-    hint.innerHTML = '数据来源：<strong>离线快照</strong>（未检测到后端，运行 <code>python web/server.py</code> 可切换实时 MCP）';
+    hint.innerHTML = '数据来源：<strong style="color:#639922;">麦当劳 MCP 实时数据</strong>（通过 web/server.py 后端实时调用）';
+  } else if (src === "麦当劳 MCP 快照") {
+    const t = window.__snapshotUpdated ? '，快照更新于 ' + window.__snapshotUpdated : '';
+    hint.innerHTML = '数据来源：<strong style="color:#639922;">麦当劳 MCP 真实数据</strong>' + t +
+      '（通过 web/server.py 后端加载；配置 <code>MCD_MCP_BASE_URL</code> 可切换实时直连）';
   } else {
-    hint.innerHTML = '数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 返回的真实营养数据（离线快照兜底）。启动 <code>web/server.py</code> 后端后自动切换实时 MCP。';
+    hint.innerHTML = '数据来源：麦当劳 MCP <code>list-nutrition-foods</code> 真实营养数据（内联快照）。启动 <code>web/server.py</code> 后端后，通过 <code>/api/foods</code> 自动加载。';
   }
 }
 
@@ -314,7 +318,8 @@ async function loadRemoteFoods() {
     if (data.foods && data.foods.length > 0) {
       FOODS.length = 0;
       FOODS.push(...data.foods);
-      window.__foodSource = data.source === "mcp" ? "麦当劳 MCP 实时数据" : "离线快照";
+      window.__foodSource = data.source === "mcp" ? "麦当劳 MCP 实时数据" : "麦当劳 MCP 快照";
+      window.__snapshotUpdated = data.snapshot_updated || "";
       updateSourceHint();
       generate();
     }

@@ -1,4 +1,4 @@
-# 麦当劳营养点餐 Agent（McD Nutrition Agent）
+# 麦当劳营养点餐 Agent（McDonald's Nutrition Agent）
 
 > 一个基于麦当劳 MCP 能力的营养点餐智能体：说出你的热量/营养目标，自动帮你拼出一份「吃得饱、营养对」的麦当劳套餐。
 

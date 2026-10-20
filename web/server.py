@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -27,24 +28,29 @@ PORT = int(os.environ.get("PORT", "8765"))
 
 
 def get_foods():
-    """获取营养数据：实时 MCP 优先，离线快照兜底。"""
+    """获取营养数据：实时 MCP 优先，MCP 快照兜底。返回 (foods, source, snapshot_updated)。"""
     client = McDonaldsMCPClient()  # 从环境变量读 base_url / auth_token
     if client.base_url:
         try:
             foods = client.list_nutrition_foods()
             if foods:
-                return [f.to_dict() for f in foods], "mcp"
+                return [f.to_dict() for f in foods], "mcp", ""
         except Exception:
             pass
-    foods = load_snapshot()
-    return [f.to_dict() for f in foods], "snapshot"
+    snapshot_path = os.path.join(ROOT, "core", "nutrition_snapshot.json")
+    try:
+        updated = time.strftime("%Y-%m-%d %H:%M", time.localtime(os.path.getmtime(snapshot_path)))
+    except OSError:
+        updated = ""
+    return [f.to_dict() for f in load_snapshot()], "snapshot", updated
 
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/foods":
-            foods, source = get_foods()
-            body = json.dumps({"source": source, "foods": foods},
+            foods, source, snapshot_updated = get_foods()
+            body = json.dumps({"source": source, "foods": foods,
+                               "snapshot_updated": snapshot_updated},
                               ensure_ascii=False).encode("utf-8")
             self._respond(200, "application/json; charset=utf-8", body)
         elif self.path in ("/", "/index.html"):
