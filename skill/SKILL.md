@@ -17,7 +17,7 @@ description: 麦当劳营养点餐 Agent。当用户提到麦当劳点餐、热�
 
 2. **获取数据**：调用麦当劳 MCP 获取真实营养数据
    - 工具：`mcp__mcd-mcp__list-nutrition-foods`（通过 DeferExecuteTool 调用）
-   - 返回 160+ 餐品，字段含 productName / energyKcal / protein / fat / carbohydrate / sodium / calcium
+   - 返回 156 种餐品，字段含 productName / energyKcal / protein / fat / carbohydrate / sodium / calcium
 
 3. **拼配套餐**：调用核心引擎 `core/nutrition.py`
    ```python

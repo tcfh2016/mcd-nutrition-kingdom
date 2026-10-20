@@ -34,7 +34,7 @@
 │  McDonaldsMCPClient         │
 │  .list_nutrition_foods()    │  ──► 调用 mcp__mcd-mcp__list-nutrition-foods
 └─────────────────────────────┘
-        │  返回 160+ 餐品营养数据
+        │  返回 156 种餐品营养数据
         ▼
 ┌─────────────────────────────┐
 │  core.nutrition             │

@@ -5,8 +5,8 @@
 ## 项目信息
 
 - **项目名称**：麦当劳营养点餐 Agent（McDonald's Nutrition Agent）
-- **项目地址**：（提交前填写 GitHub 仓库地址）
-- **参赛者**：（提交前填写 GitHub 账号）
+- **项目地址**：https://github.com/tcfh2016/mcd-nutrition-agent
+- **参赛者**：tcfh2016
 
 ## 原创性声明
 

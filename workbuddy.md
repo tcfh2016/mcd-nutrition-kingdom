@@ -11,7 +11,7 @@
 **用户**：我今晚只想吃 500 千卡，帮我搭配一份麦当劳，少油一点。
 
 **WorkBuddy（调用本 Skill）**：
-1. 调用麦当劳 MCP `list-nutrition-foods` 获取 160+ 餐品真实营养数据；
+1. 调用麦当劳 MCP `list-nutrition-foods` 获取 156 种餐品真实营养数据；
 2. 解析为结构化 `FoodItem` 数据模型；
 3. 按「控卡减脂」模式构建营养约束（总热量 ≤ 500 kcal、压低脂肪供能占比）；
 4. 运行贪心 + 局部搜索引擎，拼配出满足约束的套餐；
@@ -40,4 +40,4 @@
 
 - **开发环境**：腾讯 WorkBuddy（Windows，Python 3.13）
 - **麦当劳 MCP 连通性验证**：`now-time-info` / `query-nearby-stores` / `query-my-account` / `list-nutrition-foods` / `query-lottery-info` 均已实测调用成功
-- **营养数据规模**：`list-nutrition-foods` 返回 160+ 种餐品，含完整能量/蛋白/脂肪/碳水/钠/钙字段
+- **营养数据规模**：`list-nutrition-foods` 返回 156 种餐品，含完整能量/蛋白/脂肪/碳水/钠/钙字段
