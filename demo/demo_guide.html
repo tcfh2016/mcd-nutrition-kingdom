@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦当劳营养点餐 Agent · 产品 Demo 说明</title>
+<style>
+  :root {
+    --red: #DA291C;
+    --red-dark: #B71C12;
+    --yellow: #FFC72C;
+    --yellow-light: #FFF4D1;
+    --ink: #1F1F1F;
+    --ink-2: #5A5A5A;
+    --ink-3: #8A8A8A;
+    --bg: #FAFAF8;
+    --card: #FFFFFF;
+    --line: #ECE8E2;
+    --teal: #1E8C7A;
+    --blue: #2B6CB0;
+    --purple: #7C5CBF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #DA291C 0%, #B71C12 60%, #8E160D 100%);
+    color: #fff;
+    padding: 64px 0 72px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -80px; top: -80px;
+    width: 320px; height: 320px;
+    background: var(--yellow);
+    border-radius: 50%;
+    opacity: 0.18;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: #5C3A00;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .hero h1 { font-size: 42px; line-height: 1.2; font-weight: 800; letter-spacing: -0.5px; }
+  .hero .sub { font-size: 19px; margin-top: 16px; opacity: 0.95; max-width: 640px; }
+  .modes { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+  .mode-pill {
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .mode-pill b { color: var(--yellow); }
+
+  /* ===== Section ===== */
+  section { padding: 56px 0; }
+  .sec-head { text-align: center; margin-bottom: 36px; }
+  .sec-head .kicker {
+    color: var(--red);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .sec-head h2 { font-size: 30px; font-weight: 800; margin-top: 8px; }
+  .sec-head p { color: var(--ink-2); margin-top: 10px; font-size: 16px; }
+
+  /* ===== Customers ===== */
+  .cust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .cust-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 26px 22px;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .cust-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.08); }
+  .cust-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 16px;
+  }
+  .cust-card h3 { font-size: 17px; margin-bottom: 8px; }
+  .cust-card p { font-size: 14px; color: var(--ink-2); }
+  .cust-card .mode-tag {
+    display: inline-block; margin-top: 14px;
+    font-size: 12px; font-weight: 700; color: var(--red);
+    background: var(--yellow-light);
+    padding: 3px 10px; border-radius: 6px;
+  }
+
+  /* ===== Features ===== */
+  .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .feat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .feat-card .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--yellow); display: inline-block; margin-bottom: 12px;
+    box-shadow: 0 0 0 4px var(--yellow-light);
+  }
+  .feat-card h3 { font-size: 16px; margin-bottom: 6px; }
+  .feat-card p { font-size: 14px; color: var(--ink-2); }
+
+  /* ===== Flow ===== */
+  .flow {
+    background: linear-gradient(180deg, #fff 0%, #FFF8E8 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 36px 32px;
+  }
+  .flow-steps { display: flex; align-items: stretch; gap: 8px; margin-top: 26px; flex-wrap: wrap; }
+  .flow-step {
+    flex: 1; min-width: 120px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .flow-step .num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--red); color: #fff;
+    font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .flow-step h4 { font-size: 14px; margin-bottom: 4px; }
+  .flow-step p { font-size: 12px; color: var(--ink-3); }
+  .flow-arrow {
+    align-self: center; color: var(--red); font-size: 22px; font-weight: 800;
+    flex: 0 0 auto;
+  }
+
+  /* ===== Usage ===== */
+  .usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .usage-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .usage-card .tag {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 12px;
+  }
+  .usage-card h3 { font-size: 16px; margin-bottom: 8px; }
+  .usage-card p { font-size: 14px; color: var(--ink-2); }
+  .usage-card code {
+    display: block; margin-top: 12px;
+    background: #2A2A2A; color: #7EE0A3;
+    font-size: 12px; padding: 8px 10px; border-radius: 6px;
+    font-family: "SF Mono", "Consolas", monospace;
+    white-space: nowrap; overflow-x: auto;
+  }
+
+  footer { padding: 36px 0; text-align: center; color: var(--ink-3); font-size: 13px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 820px) {
+    .cust-grid, .feat-grid, .usage-grid { grid-template-columns: 1fr 1fr; }
+    .hero h1 { font-size: 32px; }
+  }
+  @media (max-width: 520px) {
+    .cust-grid, .feat-grid, .usage-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="wrap">
+    <span class="badge">麦当劳营养点餐 Agent · McD Nutrition Agent</span>
+    <h1>说出你的目标，<br>自动拼一份吃得饱、营养对的套餐</h1>
+    <p class="sub">基于麦当劳官方 160+ 餐品的真实营养数据，把"健康吃麦当劳"从口号，变成可执行、可量化、可下单的动作。</p>
+    <div class="modes">
+      <span class="mode-pill">🔥 <b>控卡减脂</b> · 总热量 ≤ 预算</span>
+      <span class="mode-pill">💪 <b>增肌高蛋白</b> · 保证蛋白下限</span>
+      <span class="mode-pill">🍬 <b>控糖低 GI</b> · 限制碳水总量</span>
+    </div>
+  </div>
+</div>
+
+<!-- 客户画像 -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Who is it for</div>
+      <h2>为谁而做</h2>
+      <p>四类人群，一个答案：在麦当劳，你也能吃得对。</p>
+    </div>
+    <div class="cust-grid">
+      <div class="cust-card">
+        <div class="cust-icon" style="background:#FFE9E7;">🏃</div>
+        <h3>健身 / 减脂人群</h3>
+        <p>想精准控制每一餐的热量与宏量营养，不靠猜。</p>
+        <span class="mode-tag">控卡减脂</span>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon" style="background:#E9F3FF;">💪</div>
+        <h3>增肌人群</h3>
+        <p>练后要补足蛋白质，优先高蛋白密度餐品。</p>
+        <span class="mode-tag">增肌高蛋白</span>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon" style="background:#FFF3D6;">🍬</div>
+        <h3>控糖 / 低碳饮食者</h3>
+        <p>需要限制碳水、控血糖，又想吃得满足。</p>
+        <span class="mode-tag">控糖低 GI</span>
+      </div>
+      <div class="cust-card">
+        <div class="cust-icon" style="background:#F0EFFF;">🧑‍💻</div>
+        <h3>普通上班族</h3>
+        <p>没时间算热量，想一键得到一个"相对健康"的搭配。</p>
+        <span class="mode-tag">全天三餐规划</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 功能亮点 -->
+<section style="background:#fff; border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Features</div>
+      <h2>它能做什么</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><span class="dot"></span><h3>真实 MCP 数据</h3><p>所有营养结论来自麦当劳官方 MCP（160+ 餐品），非臆测、可复现。</p></div>
+      <div class="feat-card"><span class="dot"></span><h3>多模式约束求解</h3><p>贪心 + 局部搜索，自动去重与类别均衡，每类餐品不超过 2 件。</p></div>
+      <div class="feat-card"><span class="dot"></span><h3>忌口 / 过敏原过滤</h3><p>辣、鱼、牛肉、猪肉、鸡肉、蛋、乳糖、海鲜、麸质，一键避开。</p></div>
+      <div class="feat-card"><span class="dot"></span><h3>全天多餐规划</h3><p>把全天预算按早/午/晚 30/40/30 拆配，跨餐不重复。</p></div>
+      <div class="feat-card"><span class="dot"></span><h3>完整营养标签</h3><p>热量、蛋白、脂肪、碳水、钠、钙，六项一次给全。</p></div>
+      <div class="feat-card"><span class="dot"></span><h3>一键下单闭环</h3><p>营养 → 门店 → 餐品映射 → 算价 → 下单，全自动串联。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 全链路流程 -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">End-to-end</div>
+      <h2>从"想吃"到"下单"，一条链走完</h2>
+    </div>
+    <div class="flow">
+      <p style="color:var(--ink-2);">输入一句目标（例："我想吃顿 500 千卡的低卡早餐，帮我直接下单"），Agent 自动完成以下六步：</p>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="num">1</div><h4>营养拼配</h4><p>list-nutrition-foods</p></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="num">2</div><h4>定位门店</h4><p>query-nearby-stores</p></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="num">3</div><h4>查菜单</h4><p>query-meals</p></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="num">4</div><h4>名称映射</h4><p>map_food_to_product</p></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="num">5</div><h4>算价</h4><p>calculate-price</p></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="num">6</div><h4>下单</h4><p>create-order（需确认）</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 使用方式 -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">How to use</div>
+      <h2>三种方式，随手可用</h2>
+    </div>
+    <div class="usage-grid">
+      <div class="usage-card">
+        <span class="tag" style="background:#FFE9E7;color:var(--red);">命令行</span>
+        <h3>独立 CLI</h3>
+        <p>一键出套餐，适合批量演示与脚本集成。</p>
+        <code>python cli/main.py --mode calorie --kcal 500</code>
+      </div>
+      <div class="usage-card">
+        <span class="tag" style="background:#E9F3FF;color:var(--blue);">可视化</span>
+        <h3>Web 界面</h3>
+        <p>浏览器直接打开，拖滑块、切模式，实时看结果与营养图表。</p>
+        <code>open web/index.html</code>
+      </div>
+      <div class="usage-card">
+        <span class="tag" style="background:#F0EFFF;color:var(--purple);">智能体</span>
+        <h3>WorkBuddy Skill</h3>
+        <p>在对话里自然表达，Agent 实时调用麦当劳 MCP 出方案。</p>
+        <code>"我今晚只吃 500 千卡，帮我搭配麦当劳"</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  麦当劳营养点餐 Agent · 数据来源：麦当劳官方 MCP（list-nutrition-foods）
+</footer>
+
+</body>
+</html>

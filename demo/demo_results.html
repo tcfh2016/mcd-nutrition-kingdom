@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦当劳营养点餐 Agent · 演示结果卡</title>
+<style>
+  :root {
+    --red: #DA291C;
+    --red-dark: #B71C12;
+    --yellow: #FFC72C;
+    --yellow-light: #FFF4D1;
+    --ink: #1F1F1F;
+    --ink-2: #5A5A5A;
+    --ink-3: #8A8A8A;
+    --bg: #FAFAF8;
+    --card: #FFFFFF;
+    --line: #ECE8E2;
+    --green: #1E8C7A;
+    --blue: #2B6CB0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  .head { text-align: center; margin-bottom: 30px; }
+  .head .kicker { color: var(--red); font-weight: 800; font-size: 13px; letter-spacing: 2px; }
+  .head h1 { font-size: 30px; font-weight: 800; margin-top: 6px; }
+  .head p { color: var(--ink-2); font-size: 15px; margin-top: 8px; }
+  .head .meta { margin-top: 14px; display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .head .meta span { background: var(--card); border: 1px solid var(--line); padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--ink-2); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    margin-bottom: 26px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .card-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; }
+  .card-num {
+    width: 42px; height: 42px; flex: 0 0 auto;
+    background: var(--red); color: #fff;
+    border-radius: 12px; font-weight: 800; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-title h2 { font-size: 20px; font-weight: 800; }
+  .card-title .cust { font-size: 13px; color: var(--red); font-weight: 600; margin-top: 2px; }
+  .card-title .story { font-size: 14px; color: var(--ink-2); font-style: italic; margin-top: 4px; }
+  .card-body { padding: 20px 24px 24px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 9px 8px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--ink-3); font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--line); }
+  tbody tr { border-bottom: 1px solid #F4F1EC; }
+  tbody tr:last-child { border-bottom: none; }
+  .totals-row td { font-weight: 800; border-top: 2px solid var(--ink); background: #FCFAF5; }
+  .totals-row td:first-child { color: var(--red-dark); }
+
+  .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .badge {
+    flex: 1; min-width: 120px;
+    background: var(--yellow-light);
+    border-radius: 10px; padding: 10px 14px; text-align: center;
+  }
+  .badge .v { font-size: 18px; font-weight: 800; color: var(--red-dark); }
+  .badge .k { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .badge.util .v { color: var(--green); }
+
+  /* demo 4 对比 */
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cmp-col { border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .cmp-col h3 { font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .cmp-col h3 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .cmp-col .food { padding: 5px 0; border-bottom: 1px dashed #ECE8E2; font-size: 14px; }
+  .cmp-col .food:last-child { border-bottom: none; }
+  .cmp-col .food .kcal { float: right; color: var(--ink-3); font-size: 13px; }
+  .cmp-col.after { background: #F4FBF9; border-color: #BEE3DA; }
+  .cmp-col.after h3 { color: var(--green); }
+  .arrow-badge { text-align: center; color: var(--red); font-size: 22px; font-weight: 800; align-self: center; }
+
+  /* demo 5 全链路 */
+  .flow-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .flow-chip {
+    background: #F5F5F2; border: 1px solid var(--line);
+    padding: 7px 12px; border-radius: 8px; font-size: 13px;
+  }
+  .flow-chip b { color: var(--red-dark); }
+  .flow-arrow { color: var(--red); font-weight: 800; }
+  .store-box {
+    background: #F5F5F2; border-radius: 10px; padding: 12px 16px;
+    margin: 14px 0; font-size: 14px;
+  }
+  .store-box b { color: var(--red-dark); }
+  .price-line { font-size: 15px; margin-top: 10px; }
+  .price-line .big { font-size: 26px; font-weight: 800; color: var(--red); }
+
+  @media (max-width: 620px) {
+    .cmp { grid-template-columns: 1fr; }
+    .card-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="kicker">LIVE DEMO RESULTS</div>
+    <h1>演示结果卡</h1>
+    <p>以下为现场实测输出（营养数据来自麦当劳官方 MCP 快照；全链路为真实 MCP 调用）。</p>
+    <div class="meta">
+      <span>🔥 控卡减脂</span><span>💪 增肌高蛋白</span><span>🍬 控糖低 GI</span><span>🚫 忌口过滤</span><span>🛒 全链路下单</span>
+    </div>
+  </div>
+
+  <div id="root"></div>
+</div>
+
+<script>
+const DEMOS = [
+  {
+    id: 1, title: "控卡减脂", customer: "健身 / 减脂人群",
+    story: "「我今晚只想吃 500 千卡，少油一点」", budget: 500,
+    items: [
+      ["蜜汁快乐", 258, 22, 9, 20],
+      ["蜜汁BBQ风味薄皮脆汁鸡-琵琶腿", 173, 18, 9, 5],
+      ["小杯玉米杯", 53, 2, 1, 7],
+      ["小杯鲜萃咖啡", 15, 1, 0, 3]
+    ],
+    totals: { kcal: 499, protein: 43, fat: 19, carb: 35, sodium: 1271, calcium: 61, util: 100 }
+  },
+  {
+    id: 2, title: "增肌高蛋白", customer: "增肌人群",
+    story: "「我最近在增肌，蛋白质要够，700 千卡左右」", budget: 700,
+    items: [
+      ["果然多肉", 478, 36, 17, 44],
+      ["蜜汁BBQ风味薄皮脆汁鸡-带骨里脊", 152, 20, 5, 6],
+      ["小杯玉米杯", 53, 2, 1, 7],
+      ["大杯鲜萃咖啡", 13, 1, 0, 0]
+    ],
+    totals: { kcal: 696, protein: 59, fat: 23, carb: 57, sodium: 1982, calcium: 232, util: 99 }
+  },
+  {
+    id: 3, title: "控糖低 GI", customer: "控糖 / 低碳饮食者",
+    story: "「控糖期想吃麦当劳，碳水别太高」", budget: 450,
+    items: [
+      ["蜜汁快乐", 258, 22, 9, 20],
+      ["蒜了吧黄油风味薄皮脆汁鸡-琵琶腿", 164, 19, 6, 6],
+      ["冰美式大杯", 14, 1, 0, 2],
+      ["大杯鲜萃咖啡", 13, 1, 0, 0]
+    ],
+    totals: { kcal: 449, protein: 43, fat: 15, carb: 28, sodium: 1591, calcium: 59, util: 100 }
+  },
+  {
+    id: 4, title: "忌口过滤", customer: "忌口 / 过敏人群",
+    story: "「我对海鲜过敏，别给我配鱼排堡之类的东西」", budget: 550,
+    before: {
+      label: "未过滤",
+      items: [["蜜汁快乐", 258], ["儿童鱼排堡", 269], ["冰美式小杯", 10], ["大杯鲜萃咖啡", 13]]
+    },
+    after: {
+      label: "忌「鱼」后",
+      items: [["蜜汁快乐", 258], ["火腿扒麦满分", 261], ["冰美式大杯", 14], ["小杯鲜萃咖啡", 15]]
+    },
+    totals: { kcal: 548, protein: 38, fat: 21, carb: 49, util: 100 }
+  },
+  {
+    id: 5, title: "全链路下单", customer: "想直接吃到的顾客 / 技术评审",
+    story: "「早上想吃顿低卡早餐，帮我直接下单」", budget: 500,
+    store: { name: "麦当劳杭州西湖银泰餐厅", code: "3330052", addr: "延安路 98 号" },
+    items: [
+      ["猪柳蛋麦满分", 387, 23, 21, 25],
+      ["小杯玉米杯", 53, 2, 1, 7],
+      ["小杯鲜萃咖啡", 15, 1, 0, 3]
+    ],
+    totals: { kcal: 455, protein: 26, fat: 22, carb: 35, sodium: 849, calcium: 255, util: 91 },
+    mapped: [
+      ["猪柳蛋麦满分", "5022", 18.0],
+      ["小杯玉米杯", "4437", 13.0],
+      ["小杯鲜萃咖啡", "520689", 9.5]
+    ],
+    price: 40.5, takeway: ["堂食（eat-in）", "外带（take-in-store）"]
+  }
+];
+
+function mealTable(items, totals) {
+  let rows = items.map(it =>
+    `<tr><td>${it[0]}</td><td>${it[1]}</td><td>${it[2]}</td><td>${it[3]}</td><td>${it[4]}</td></tr>`
+  ).join("");
+  return `
+    <table>
+      <thead><tr><th>餐品</th><th>热量(kcal)</th><th>蛋白(g)</th><th>脂肪(g)</th><th>碳水(g)</th></tr></thead>
+      <tbody>
+        ${rows}
+        <tr class="totals-row"><td>合计</td><td>${totals.kcal}</td><td>${totals.protein}</td><td>${totals.fat}</td><td>${totals.carb}</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function badges(totals, budget) {
+  return `
+    <div class="badges">
+      <div class="badge"><div class="v">${totals.kcal}</div><div class="k">总热量 kcal</div></div>
+      <div class="badge"><div class="v">${totals.protein}g</div><div class="k">蛋白质</div></div>
+      <div class="badge"><div class="v">${totals.fat}g</div><div class="k">脂肪</div></div>
+      <div class="badge"><div class="v">${totals.carb}g</div><div class="k">碳水</div></div>
+      <div class="badge util"><div class="v">${totals.util}%</div><div class="k">热量利用率 / ${budget}</div></div>
+    </div>`;
+}
+
+function render(d) {
+  let body = "";
+  if (d.id === 4) {
+    body = `
+      <div class="cmp">
+        <div class="cmp-col">
+          <h3><span class="dot" style="background:var(--ink-3);"></span>${d.before.label}</h3>
+          ${d.before.items.map(f => `<div class="food">${f[0]}<span class="kcal">${f[1]} kcal</span></div>`).join("")}
+        </div>
+        <div class="arrow-badge">→</div>
+        <div class="cmp-col after">
+          <h3><span class="dot" style="background:var(--green);"></span>${d.after.label}（自动替换含"鱼"餐品）</h3>
+          ${d.after.items.map(f => `<div class="food">${f[0]}<span class="kcal">${f[1]} kcal</span></div>`).join("")}
+        </div>
+      </div>
+      ${badges(d.totals, d.budget)}`;
+  } else if (d.id === 5) {
+    body = `
+      ${mealTable(d.items, d.totals)}
+      <div class="store-box">📍 <b>${d.store.name}</b>（门店编号 ${d.store.code}）· ${d.store.addr}</div>
+      <div class="flow-line">
+        <span class="flow-chip">营养拼配</span><span class="flow-arrow">→</span>
+        <span class="flow-chip">定位门店</span><span class="flow-arrow">→</span>
+        <span class="flow-chip">查询菜单</span><span class="flow-arrow">→</span>
+        <span class="flow-chip">名称映射 <b>${d.mapped.length}/${d.mapped.length}</b></span><span class="flow-arrow">→</span>
+        <span class="flow-chip">算价</span>
+      </div>
+      <table style="margin-top:14px;">
+        <thead><tr><th>营养餐品</th><th>映射商品 code</th><th>价格</th></tr></thead>
+        <tbody>
+          ${d.mapped.map(m => `<tr><td>${m[0]}</td><td>${m[1]}</td><td>¥${m[2]}</td></tr>`).join("")}
+          <tr class="totals-row"><td>合计</td><td></td><td>¥${d.price}</td></tr>
+        </tbody>
+      </table>
+      <div class="price-line">应付 <span class="big">¥${d.price}</span>　取餐方式：${d.takeway.join(" · ")}　<span style="color:var(--ink-3);font-size:13px;">（下单为副作用操作，需用户确认）</span></div>`;
+  } else {
+    body = mealTable(d.items, d.totals) + badges(d.totals, d.budget);
+  }
+
+  return `
+    <div class="card">
+      <div class="card-head">
+        <div class="card-num">${d.id}</div>
+        <div class="card-title">
+          <h2>${d.title} <span style="font-size:13px;color:var(--ink-3);font-weight:600;">· 预算 ${d.budget} 千卡</span></h2>
+          <div class="cust">🎯 ${d.customer}</div>
+          <div class="story">${d.story}</div>
+        </div>
+      </div>
+      <div class="card-body">${body}</div>
+    </div>`;
+}
+
+document.getElementById("root").innerHTML = DEMOS.map(render).join("");
+</script>
+</body>
+</html>
