@@ -18,3 +18,6 @@ env/
 # 系统
 .DS_Store
 Thumbs.db
+
+# GIF 录屏临时帧
+docs/_gif_*/
