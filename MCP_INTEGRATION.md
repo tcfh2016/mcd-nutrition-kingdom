@@ -1,6 +1,6 @@
 # MCP 集成说明（MCP_INTEGRATION）
 
-本文档说明「麦当劳营养点餐 Agent」实际使用的麦当劳 MCP Server、Tool、调用流程与业务价值。
+本文档说明「麦当劳营养王国」实际使用的麦当劳 MCP Server、Tool、调用流程与业务价值。
 
 ## 1. 使用的 MCP Server
 
@@ -17,10 +17,19 @@
 | `calculate-price` | 计算商品价格（含优惠，返回 takeWayList） | 全链路：算价并获取下单所需的 takeWayCode |
 | `create-order` | 创建订单 | 全链路：最终下单（需用户确认） |
 | `query-order` | 查询订单状态 | 全链路：下单后跟踪支付/配送状态 |
-| `query-my-account` | 查询积分账户 | （规划）结合积分/优惠券优化下单成本 |
-| `query-lottery-info` | 查看积分抽奖活动 | （规划）提示用户可用积分兑换福利 |
+| `query-my-account` | 查询积分账户 | **潮玩宫**：积分账户卡片（可用/累计/过期积分） |
+| `mall-points-products` | 查询积分商城可兑换商品（餐品券/实物/周边/派对） | **潮玩宫**：商城橱窗三分类（积分兑餐品券、实物周边、派对体验） |
+| `query-lottery-info` | 查看积分抽奖活动与奖品 | **潮玩宫**：积分抽奖区（单次积分 + 奖品列表） |
+| `query-my-prizes` | 查询抽奖获得的奖品 | **潮玩宫**：（规划）我的奖品 |
+| `campaign-calendar` | 查询营销活动日历 | **潮玩宫/活动宫**：当季联名/活动速递横幅 |
+| `available-coupons` | 查询可领取的优惠券（麦麦省） | **活动宫**：优惠券一键领取 |
+| `query-store-coupons` | 查询门店可用优惠券 | 全链路：点餐省钱优化 |
+| `query-promotions` | 查询团餐促销规则（满减/满折） | **活动宫**：企业团餐场景（beType=6） |
+| `query-meal-assistance` | 查询助餐服务 | **活动宫**：企业团餐场景 |
+| `delivery-query-stores` | 查询外送门店 | **活动宫**：外送场景 |
+| `delivery-query-addresses` | 查询收货地址 | **活动宫**：外送地址管理 |
 
-> v1 已真实调用 `list-nutrition-foods` 完成营养拼配；v2 已打通「营养 → 门店 → 餐品映射 → 算价 → 下单」全链路（下单为副作用操作，需用户确认）。
+> v1 已真实调用 `list-nutrition-foods` 完成营养拼配；v2 已打通「营养 → 门店 → 餐品映射 → 算价 → 下单」全链路（下单为副作用操作，需用户确认）；v3「潮玩宫」已基于积分商城 / 抽奖 / 活动日历工具构建积分乐园（读链路落地，兑换/抽奖为副作用操作需确认）；v3「许愿宫」为前端语义层——将自然语言愿望解析为营养约束（复用 `list-nutrition-foods` 拼配实现），无法实现的愿望本地收集（愿望池）导出转达，派对类愿望复用 `mall-points-products` 派对数据引导预订；v3「活动宫」基于 `campaign-calendar` + `available-coupons` + `mall-points-products` 构建联名速递（活动日历 + 优惠券领取 + 派对入口）。
 
 ## 3. 调用流程
 

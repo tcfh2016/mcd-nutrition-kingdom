@@ -4,15 +4,15 @@
 
 ## 项目信息
 
-- **项目名称**：麦当劳营养点餐 Agent（McDonald's Nutrition Agent）
-- **项目地址**：https://github.com/tcfh2016/mcd-nutrition-agent
+- **项目名称**：麦当劳营养王国（McDonald's Nutrition Kingdom）
+- **项目地址**：https://github.com/tcfh2016/mcd-nutrition-kingdom
 - **参赛者**：tcfh2016
 
 ## 原创性声明
 
 本人郑重声明：
 
-1. 本项目（麦当劳营养点餐 Agent）为本人原创成果，核心代码（`core/`、`cli/`、`skill/`）均由本人独立设计、编写；
+1. 本项目（麦当劳营养王国）为本人原创成果，核心代码（`core/`、`cli/`、`skill/`）均由本人独立设计、编写；
 2. 本项目未抄袭、盗用任何第三方的项目、代码或创意，不侵犯任何第三方的知识产权、隐私权、商业秘密或其他合法权益；
 3. 本项目未违反本人与任何第三方之间在先的合同约定；
 4. 项目内使用的营养数据来源于麦当劳官方 MCP（`list-nutrition-foods`）公开接口，离线快照仅为该接口返回数据的全量静态快照，用于无 MCP 环境下的功能演示，不构成对第三方权益的侵害。

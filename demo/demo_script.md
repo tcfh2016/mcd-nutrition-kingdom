@@ -1,7 +1,7 @@
-# 麦当劳营养点餐 Agent —— 现场演示脚本
+# 麦当劳营养王国 —— 现场演示脚本
 
 > 给演示者用的"提词器"。照着念 + 敲命令即可，全程约 8 分钟。
-> 环境准备：Python 3.9+，先 `cd mcd-nutrition-agent` 进到项目根目录。
+> 环境准备：Python 3.9+，先 `cd mcd-nutrition-kingdom` 进到项目根目录。
 
 ---
 

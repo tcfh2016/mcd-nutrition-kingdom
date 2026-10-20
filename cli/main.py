@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""麦当劳营养点餐 Agent —— 独立 CLI。
+"""麦当劳营养王国 —— 独立 CLI。
 
 用法示例：
     # 控卡减脂：预算 500 千卡
@@ -123,7 +123,7 @@ def render_order_flow(result: dict) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="麦当劳营养点餐 Agent")
+    parser = argparse.ArgumentParser(description="麦当劳营养王国")
     parser.add_argument("--mode", choices=["calorie", "protein", "lowcarb"],
                         default="calorie", help="营养模式")
     parser.add_argument("--kcal", type=float, required=True, help="热量预算（千卡）")

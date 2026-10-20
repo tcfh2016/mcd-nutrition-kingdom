@@ -1,0 +1,68 @@
+{
+  "_source": "麦当劳 MCP 真实数据快照（mall-points-products / query-lottery-info / query-my-account / campaign-calendar，采集于 2026-10-20）",
+  "generated_at": "2026-10-20",
+  "account": {
+    "currency": "麦享会积分",
+    "availablePoint": "0",
+    "accumulativePoint": "0",
+    "currentMouthExpirePoint": "0",
+    "nextMouthExpirePoint": "0",
+    "demo": true,
+    "demo_note": "演示账户（未登录或新会员积分为 0）；正式使用时以 query-my-account 实时返回为准"
+  },
+  "mall": {
+    "coupons": [
+      {"spuName": "3.9元圆筒冰淇淋", "point": "100", "selling": "3.9元圆筒冰淇淋1份", "spuImage": "https://img.mcd.cn/ecs/cef48e71650fb9b0.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "6.9元香芋派/菠萝派任选", "point": "50", "selling": "6.9元香芋派/菠萝派任选1份", "spuImage": "https://img.mcd.cn/ecs/c8e3a03b35f73ede.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "6.9元可乐麦炫酷", "point": "50", "selling": "6.9元可乐麦炫酷1份", "spuImage": "https://img.mcd.cn/ecs/affec854b9474fa2.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "10.9元指定小食任选", "point": "100", "selling": "10.9元指定小食任选1份", "spuImage": "https://img.mcd.cn/ecs/acd57835928c0f6f.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "10.9元指定小食任选", "point": "200", "selling": "10.9元指定小食任选1份", "spuImage": "https://img.mcd.cn/ecs/72a21fa0f800c4d7.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "16.9元2份麦辣鸡翅", "point": "200", "selling": "16.9元2份麦辣鸡翅", "spuImage": "https://img.mcd.cn/ecs/a713450611fad7bb.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "16.9元麦辣可乐组合", "point": "500", "selling": "16.9元麦辣可乐组合", "spuImage": "https://img.mcd.cn/ecs/20c9867018af833a.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "17.9元板烧可乐组合", "point": "500", "selling": "17.9元板烧可乐组合", "spuImage": "https://img.mcd.cn/ecs/08b655d1f4d3d639.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"},
+      {"spuName": "21.9元巨无霸可乐组合", "point": "800", "selling": "21.9元巨无霸可乐组合", "spuImage": "https://img.mcd.cn/ecs/bd4382429dc7c39c.jpg", "catName": "到店专用", "downTime": "2026-12-30 23:59:59"}
+    ],
+    "physical": [
+      {"spuName": "Nike Book 2 麦当劳特别联名款", "point": "8888", "selling": "独一无二，梦幻联动，Nike Book 2 麦当劳特别联名款，每人限购一双，每日 14:00 准时开抢", "spuImage": "https://img.mcd.cn/ecs/3d4d37c8feb04aab.jpg", "catName": "鞋袜"},
+      {"spuName": "罗技键鼠套装", "point": "6666", "selling": "积分兑大礼，罗技键鼠套装 6666 积分兑换！每日限量 5 份，先到先得", "spuImage": "https://img.mcd.cn/ecs/b1830d7dc1ea9a89.jpg", "catName": "玩具"},
+      {"spuName": "酸黄瓜吧唧礼盒", "point": "800", "selling": "800 积分兑换酸黄瓜吧唧礼盒！限量 150 份，先兑先得", "spuImage": "https://img.mcd.cn/ecs/b23170613362944d.jpg", "catName": "玩具"}
+    ],
+    "party": [
+      {"spuName": "程序员节派对", "price": "59", "point": "0", "selling": "“码”上狂欢，在轻松氛围里卸下压力、收获快乐！", "spuImage": "https://img.mcd.cn/ecs/5a5b0af5979c5c7b.jpg", "catName": "品鉴会", "downTime": "2026-10-25 23:49:59"},
+      {"spuName": "麦当劳过家家派对", "price": "55", "point": "0", "selling": "小朋友的第一场职人初体验，还有超多礼品周边", "spuImage": "https://img.mcd.cn/ecs/0122856ca730724e.png", "catName": "主题类派对", "downTime": "2027-05-22 23:59:59"},
+      {"spuName": "麦当劳趣读派对", "price": "45", "point": "0", "selling": "90 分钟生动精彩的阅读之旅，解锁开心亲子时光", "spuImage": "https://img.mcd.cn/ecs/bdedcfb69e6524cd.jpg", "catName": "主题类派对", "downTime": "2027-04-23 23:45:59"},
+      {"spuName": "麦当劳奇妙生日派对", "price": "50", "point": "0", "selling": "上海迪士尼度假区米妮主题", "spuImage": "https://img.mcd.cn/ecs/c2e746f29662c40d.png", "catName": "生日类派对", "downTime": "2027-12-31 23:59:59"},
+      {"spuName": "海底小纵队欢乐派对", "price": "58", "point": "0", "selling": "以“海洋保护”为核心的故事内核", "spuImage": "https://img.mcd.cn/ecs/2270b522c9414ae7.jpg", "catName": "主题类派对", "downTime": "2027-07-15 23:49:59"},
+      {"spuName": "消防体验营", "price": "72", "point": "0", "selling": "变身消防员，体验消防设备，寓教于乐", "spuImage": "https://img.mcd.cn/ecs/d8163e938b851eeb.jpg", "catName": "品鉴会", "downTime": "2026-12-31 23:59:59"}
+    ]
+  },
+  "lottery": {
+    "activityName": "麦麦积分抽奖",
+    "activityStatusText": "进行中",
+    "drawPoint": "24",
+    "drawTypeText": "消耗积分抽奖",
+    "endTime": "2030-12-31 23:59:59",
+    "prizes": [
+      {"name": "下单立减3元券", "imageUrl": "https://img.mcd.cn/gallery/ce3b2ebc8f729b18.png", "typeText": "优惠券"},
+      {"name": "下单立减2元券", "imageUrl": "https://img.mcd.cn/gallery/05e92c61916ad743.png", "typeText": "优惠券"},
+      {"name": "麦辣三件套5折券", "imageUrl": "https://img.mcd.cn/gallery/e74fa061787ebe92.png", "typeText": "优惠券"},
+      {"name": "板烧三件套5折券", "imageUrl": "https://img.mcd.cn/gallery/e74fa061787ebe92.png", "typeText": "优惠券"},
+      {"name": "麦旋风5折券", "imageUrl": "https://img.mcd.cn/gallery/9c0a2a5cf2791217.png", "typeText": "优惠券"},
+      {"name": "30积分", "imageUrl": "https://img.mcd.cn/gallery/a09ad4c57399cd45.png", "typeText": "积分奖"}
+    ]
+  },
+  "coupons": [
+    {"title": "王牌炸鸡任选2", "amount": "19.9", "suffix": "元", "desc": "任选 2 份王牌炸鸡"},
+    {"title": "麦辣鸡腿堡", "amount": "11.9", "suffix": "元", "desc": "经典麦辣鸡腿堡"},
+    {"title": "脆薯饼", "amount": "免费", "suffix": "", "desc": "免费领脆薯饼"},
+    {"title": "麦旋风", "amount": "买一送一", "suffix": "", "desc": "人气麦旋风买一送一"},
+    {"title": "中杯冰美式", "amount": "9.9", "suffix": "元", "desc": "中杯冰美式"}
+  ],
+  "campaign": [
+    {"title": "麦当劳 X PEACEMINUSONE 联名周边", "desc": "GD 同款复古棒球帽 / 联名徽章 / 限定丝巾，任意餐品消费加 39.9 元即可得，APP 专享积分抢先购", "image": "https://cms-cdn.mcd.cn/img/short-content/689d30bef705f848fe1fd3cfc0f419b2.jpg", "date": "2026-10-08 起"},
+    {"title": "程序员节系列活动", "desc": "10月23日-10月25日，趣味互动赢专属好券，还有机会解锁数字徽章", "image": "https://cms-cdn.mcd.cn/img/short-content/7b8d354ed81db5b3cdb97d38fcf1619c.png", "date": "2026-10-23 ~ 10-25"},
+    {"title": "麦当劳联动 G-DRAGON", "desc": "龙焰鸡腿堡三件套 26.9 元起，韩式辣酱配酥脆鸡腿排", "image": "https://cms-cdn.mcd.cn/img/short-content/25809373fbf2e5f9bb9699195149b88a.jpg", "date": "进行中"},
+    {"title": "学生麦金学期卡", "desc": "49 元 150 天吃麦特权，5 折起吃超值四件套", "image": "https://cms-cdn.mcd.cn/img/short-content/99e637e8b965cbb7895e102b5c25b0c2.png", "date": "进行中"},
+    {"title": "过家家派对", "desc": "萌娃 cosplay 梦想职业，DIY 创意手工，粉红姐姐带你玩转麦当劳", "image": "https://cms-cdn.mcd.cn/img/short-content/fd3efb9e2c3a89ba6aa8dfa4676aa333.jpg", "date": "进行中"}
+  ]
+}

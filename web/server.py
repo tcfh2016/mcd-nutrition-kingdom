@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""麦当劳营养点餐 Agent —— Web 后端服务（纯标准库实现，无第三方依赖）。
+"""麦当劳营养王国 —— Web 后端服务（纯标准库实现，无第三方依赖）。
 
 启动后：
 - 访问 http://127.0.0.1:8765/ 打开 Web 界面
@@ -45,12 +45,75 @@ def get_foods():
     return [f.to_dict() for f in load_snapshot()], "snapshot", updated
 
 
+def load_kingdom_snapshot():
+    """读取「营养王国 · 潮玩宫」离线快照。"""
+    path = os.path.join(ROOT, "core", "kingdom_snapshot.json")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _collect_kingdom_live(client):
+    """实时聚合潮玩宫数据（mall/lottery/account/campaign）。
+
+    需配置 MCD_MCP_BASE_URL / MCD_MCP_AUTH_TOKEN；任一工具失败则返回 None，
+    由 get_kingdom 降级为离线快照。
+    """
+    def _list(x):
+        d = x.get("data") if isinstance(x, dict) else None
+        return d if isinstance(d, list) else []
+
+    def _obj(x):
+        d = x.get("data") if isinstance(x, dict) else None
+        return d if isinstance(d, dict) else {}
+
+    mall_coupons = _list(client.mall_points_products("1>4"))
+    mall_physical = _list(client.mall_points_products("2,2>8"))
+    mall_party = _list(client.mall_points_products("1>6>20,1>6>21,1>6>22,1>6>25,1>6>34"))
+    lottery = _obj(client.query_lottery_info())
+    account = _obj(client.query_my_account())
+    campaign = _list(client.campaign_calendar())
+    coupons = _list(client.available_coupons())
+
+    if not (mall_coupons or mall_physical or mall_party):
+        return None  # 无商城数据，视为实时不可用，降级快照
+
+    return {
+        "account": account,
+        "mall": {
+            "coupons": mall_coupons,
+            "physical": mall_physical,
+            "party": mall_party,
+        },
+        "lottery": lottery,
+        "coupons": coupons,
+        "campaign": campaign,
+    }
+
+
+def get_kingdom():
+    """获取潮玩宫数据：实时 MCP 优先，离线快照兜底。返回 (data, source)。"""
+    client = McDonaldsMCPClient()
+    if client.base_url:
+        try:
+            data = _collect_kingdom_live(client)
+            if data:
+                return data, "mcp"
+        except Exception:
+            pass
+    return load_kingdom_snapshot(), "snapshot"
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/foods":
             foods, source, snapshot_updated = get_foods()
             body = json.dumps({"source": source, "foods": foods,
                                "snapshot_updated": snapshot_updated},
+                              ensure_ascii=False).encode("utf-8")
+            self._respond(200, "application/json; charset=utf-8", body)
+        elif self.path == "/api/kingdom":
+            kingdom, source = get_kingdom()
+            body = json.dumps({"source": source, "kingdom": kingdom},
                               ensure_ascii=False).encode("utf-8")
             self._respond(200, "application/json; charset=utf-8", body)
         elif self.path in ("/", "/index.html"):
@@ -77,9 +140,10 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     server = HTTPServer(("127.0.0.1", PORT), Handler)
-    print("麦当劳营养点餐 Agent 后端已启动")
+    print("麦当劳营养王国 后端已启动")
     print(f"  Web 界面: http://127.0.0.1:{PORT}/")
     print(f"  营养数据: http://127.0.0.1:{PORT}/api/foods")
+    print(f"  潮玩宫:   http://127.0.0.1:{PORT}/api/kingdom")
     print("  （配置 MCD_MCP_BASE_URL / MCD_MCP_AUTH_TOKEN 后自动切换实时 MCP）")
     try:
         server.serve_forever()

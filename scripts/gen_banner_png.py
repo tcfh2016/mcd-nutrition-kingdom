@@ -60,7 +60,7 @@ bold = font("C:/Windows/Fonts/arialbd.ttf", 56)
 reg = font("C:/Windows/Fonts/arial.ttf", 28)
 small = font("C:/Windows/Fonts/arial.ttf", 18)
 
-title = "McDonald's Nutrition Agent"
+title = "McDonald's Nutrition Kingdom"
 sub = "Eat well. Live well."
 foot = "Powered by McDonald's MCP \u00b7 156 real menu nutrition data"
 

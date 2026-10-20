@@ -117,6 +117,34 @@ class McDonaldsMCPClient:
         return self._call("mcp__mcd-mcp__auto-bind-coupons", {})
 
     # ------------------------------------------------------------------
+    # 积分商城 / 潮玩 / 派对 / 活动（「营养王国 · 潮玩宫」）
+    # ------------------------------------------------------------------
+    def mall_points_products(self, cat_rule_ids: str = "") -> Any:
+        """查询可兑换商品列表（积分商城）。
+
+        cat_rule_ids 可选：'1>4' 商品券、'2' 实物、'2>8' 周边、
+        '1>6>20' 生日派对、'1>6>21' 主题派对、'1>6>22' 麦麦体验营、
+        '1>6>25' 品鉴会、'1>6>34' 读书会、'1>6>40' 积分兑换活动。
+        不传则查询所有类型。
+        """
+        params = {}
+        if cat_rule_ids:
+            params["catRuleIds"] = cat_rule_ids
+        return self._call("mcp__mcd-mcp__mall-points-products", params)
+
+    def query_my_prizes(self, page_num: str = "1", page_size: str = "10") -> Any:
+        """查询积分抽奖获得的奖品（本期及历史）。"""
+        return self._call("mcp__mcd-mcp__query-my-prizes",
+                          {"pageNum": page_num, "pageSize": page_size})
+
+    def campaign_calendar(self, specified_date: str = "") -> Any:
+        """查询麦当劳中国营销活动日历（当季联名/派对/品鉴会等）。"""
+        params = {}
+        if specified_date:
+            params["specifiedDate"] = specified_date
+        return self._call("mcp__mcd-mcp__campaign-calendar", params)
+
+    # ------------------------------------------------------------------
     # 底层调用分发
     # ------------------------------------------------------------------
     def _call(self, tool_name: str, params: dict) -> Any:
