@@ -74,6 +74,6 @@ draw.text((384, 84), title, font=bold, fill=WHITE)
 draw.text((386, 152), sub, font=reg, fill=YELLOW)
 draw.text((386, 202), foot, font=small, fill=LIGHT)
 
-out = "D:/AI/Workbuddy/mcd-dev/mcd-nutrition-agent/docs/banner.png"
+out = "D:/AI/Workbuddy/mcd-dev/mcd-nutrition-kingdom/docs/banner.png"
 img.save(out)
 print(f"[SAVED] {out}  title_width={w_title:.0f}px")
